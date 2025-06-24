@@ -209,4 +209,73 @@ class ShopBackOrderController extends Controller
             ], 500);
         }
     }
+
+    public function refundOrder(Request $request, string $referenceId): JsonResponse
+    {
+        if (empty($referenceId)) {
+            return response()->json([
+                'statusCode' => 400,
+                'message' => 'Reference ID is required',
+                'traceId' => 'TRACE_' . strtoupper(Str::random(16))
+            ], 400);
+        }
+
+        $validator = Validator::make($request->all(), [
+            'amount' => 'required|numeric|min:1',
+            'reason' => 'nullable|string',
+            'referenceId' => 'required|string',
+            'posId' => 'nullable|string',
+            'refundMetadata' => 'nullable|array',
+            'refundMetadata.terminalReference' => 'nullable|string'
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'statusCode' => 400,
+                'message' => 'Invalid request parameters: ' . $validator->errors()->first(),
+                'traceId' => 'TRACE_' . strtoupper(Str::random(16))
+            ], 400);
+        }
+
+        $validated = $validator->validated();
+
+        // Generate HMAC signature
+        $endpoint = $this->baseUrl . '/v1/instore/order/' . $referenceId . '/refund';
+        $signatureData = $this->hmacService->generateSignature(
+            'POST',
+            $endpoint,
+            $validated,
+            'application/json'
+        );
+
+        // Prepare headers
+        $headers = [
+            'Authorization' => $signatureData['authorization'],
+            'Date' => $signatureData['date']
+        ];
+
+        // Make actual HTTP request to ShopBack API
+        try {
+            $response = $this->httpClient->post($this->baseUrl . '/v1/instore/order/' . $referenceId . '/refund', [
+                'headers' => $headers,
+                'json' => $validated,
+                'timeout' => 30
+            ]);
+
+            $responseBody = json_decode($response->getBody()->getContents(), true);
+            return response()->json($responseBody, $response->getStatusCode());
+
+        } catch (RequestException $e) {
+            if ($e->hasResponse()) {
+                $errorResponse = json_decode($e->getResponse()->getBody()->getContents(), true);
+                return response()->json($errorResponse, $e->getResponse()->getStatusCode());
+            }
+
+            return response()->json([
+                'statusCode' => 500,
+                'message' => 'Failed to connect to ShopBack API: ' . $e->getMessage(),
+                'traceId' => 'TRACE_' . strtoupper(Str::random(16))
+            ], 500);
+        }
+    }
 }
