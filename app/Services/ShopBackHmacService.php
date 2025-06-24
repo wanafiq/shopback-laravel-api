@@ -30,12 +30,7 @@ class ShopBackHmacService
         $signature = $this->createHmacSignature($stringToSign);
 
         // Debug logging
-        Log::info("HMAC Signature Debug:");
-        Log::info("Method: {$method}");
-        Log::info("Content-Type: {$contentType}");
-        Log::info("Date: {$dateString}");
-        Log::info("Path: {$path}");
-        Log::info("Content digest: {$contentDigest}");
+        Log::info("String to sign:\n" . $stringToSign);
         Log::info("Signature: {$signature}");
 
         return [
@@ -89,13 +84,11 @@ class ShopBackHmacService
         string $path,
         string $contentDigest
     ): string {
-        return implode("\n", [
-            strtoupper($method),
-            $contentType,
-            $date,
-            $path,
-            $contentDigest
-        ]);
+        if ($method === 'GET') {
+            return strtoupper($method) . "\n" . $contentType . "\n" . $date . "\n" . $path . "\n" . " ";
+        } else {
+            return strtoupper($method) . "\n" . $contentType . "\n" . $date . "\n" . $path . "\n" . $contentDigest;
+        }
     }
 
     private function createHmacSignature(string $stringToSign): string
@@ -108,10 +101,9 @@ class ShopBackHmacService
         string $method,
         string $path,
         array $body = [],
-        string $contentType = 'application/json',
-        ?Carbon $date = null
+        string $contentType = 'application/json'
     ): bool {
-        $expectedSignature = $this->generateSignature($method, $path, $body, $contentType, $date);
+        $expectedSignature = $this->generateSignature($method, $path, $body, $contentType);
         return hash_equals($providedSignature, $expectedSignature['authorization']);
     }
 }

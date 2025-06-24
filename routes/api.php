@@ -9,3 +9,4 @@ Route::get('/health', [HealthController::class, 'check']);
 
 Route::post('/shopback/orders/create', [ShopBackOrderController::class, 'createDynamicQrOrder']);
 Route::post('/shopback/orders/scan', [ShopBackOrderController::class, 'scanConsumerQr']);
+Route::get('/shopback/orders/{referenceId}', [ShopBackOrderController::class, 'getOrderStatus']);

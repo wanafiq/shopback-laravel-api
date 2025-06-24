@@ -69,7 +69,6 @@ class ShopBackOrderController extends Controller
             'Date' => $signatureData['date']
         ];
 
-        // Make actual HTTP request to ShopBack API
         try {
             $response = $this->httpClient->post($this->baseUrl . '/v1/instore/order/create', [
                 'headers' => $headers,
@@ -139,11 +138,58 @@ class ShopBackOrderController extends Controller
             'Date' => $signatureData['date']
         ];
 
-        // Make actual HTTP request to ShopBack API
         try {
             $response = $this->httpClient->post($this->baseUrl . '/v1/instore/order/scan', [
                 'headers' => $headers,
                 'json' => $validated,
+                'timeout' => 30
+            ]);
+
+            $responseBody = json_decode($response->getBody()->getContents(), true);
+            return response()->json($responseBody, $response->getStatusCode());
+
+        } catch (RequestException $e) {
+            if ($e->hasResponse()) {
+                $errorResponse = json_decode($e->getResponse()->getBody()->getContents(), true);
+                return response()->json($errorResponse, $e->getResponse()->getStatusCode());
+            }
+
+            return response()->json([
+                'statusCode' => 500,
+                'message' => 'Failed to connect to ShopBack API: ' . $e->getMessage(),
+                'traceId' => 'TRACE_' . strtoupper(Str::random(16))
+            ], 500);
+        }
+    }
+
+    public function getOrderStatus(string $referenceId): JsonResponse
+    {
+        if (empty($referenceId)) {
+            return response()->json([
+                'statusCode' => 400,
+                'message' => 'Reference ID is required',
+                'traceId' => 'TRACE_' . strtoupper(Str::random(16))
+            ], 400);
+        }
+
+        // Generate HMAC signature
+        $endpoint = $this->baseUrl . '/v1/instore/order/' . $referenceId;
+        $signatureData = $this->hmacService->generateSignature(
+            'GET',
+            $endpoint,
+            [],
+            'application/json'
+        );
+
+        // Prepare headers
+        $headers = [
+            'Authorization' => $signatureData['authorization'],
+            'Date' => $signatureData['date']
+        ];
+
+        try {
+            $response = $this->httpClient->get($this->baseUrl . '/v1/instore/order/' . $referenceId, [
+                'headers' => $headers,
                 'timeout' => 30
             ]);
 
