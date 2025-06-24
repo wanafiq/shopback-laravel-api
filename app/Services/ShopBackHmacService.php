@@ -59,7 +59,6 @@ class ShopBackHmacService
 
         $sortedBody = $this->sortArrayRecursively($body);
         $jsonBody = json_encode($sortedBody, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
-        Log::info("Json Body: {$jsonBody}");
 
         return hash('sha256', $jsonBody);
     }
@@ -84,11 +83,7 @@ class ShopBackHmacService
         string $path,
         string $contentDigest
     ): string {
-        if ($method === 'GET') {
-            return strtoupper($method) . "\n" . $contentType . "\n" . $date . "\n" . $path . "\n" . " ";
-        } else {
-            return strtoupper($method) . "\n" . $contentType . "\n" . $date . "\n" . $path . "\n" . $contentDigest;
-        }
+        return strtoupper($method) . "\n" . $contentType . "\n" . $date . "\n" . $path . "\n" . $contentDigest;
     }
 
     private function createHmacSignature(string $stringToSign): string

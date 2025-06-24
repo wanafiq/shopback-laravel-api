@@ -5,22 +5,18 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use App\Services\ShopBackHmacService;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
-use Illuminate\Support\Str;
-use Carbon\Carbon;
-use GuzzleHttp\Client;
-use GuzzleHttp\Exception\RequestException;
 
 class ShopBackOrderController extends Controller
 {
     private ShopBackHmacService $hmacService;
-    private Client $httpClient;
     private string $baseUrl;
 
     public function __construct(ShopBackHmacService $hmacService)
     {
         $this->hmacService = $hmacService;
-        $this->httpClient = new Client();
         $this->baseUrl = config('services.shopback.base_url');
     }
 
@@ -69,20 +65,18 @@ class ShopBackOrderController extends Controller
         ];
 
         try {
-            $response = $this->httpClient->post($this->baseUrl . '/v1/instore/order/create', [
-                'headers' => $headers,
-                'json' => $validated,
-                'timeout' => 30
+            $response = Http::loggable()
+                ->withHeaders($headers)
+                ->timeout(30)
+                ->post($this->baseUrl . '/v1/instore/order/create', $validated);
+
+            return response()->json($response->json(), $response->status());
+
+        } catch (\Exception $e) {
+            Log::error('ShopBack API Error - Create Order', [
+                'error' => $e->getMessage(),
+                'endpoint' => $this->baseUrl . '/v1/instore/order/create'
             ]);
-
-            $responseBody = json_decode($response->getBody()->getContents(), true);
-            return response()->json($responseBody, $response->getStatusCode());
-
-        } catch (RequestException $e) {
-            if ($e->hasResponse()) {
-                $errorResponse = json_decode($e->getResponse()->getBody()->getContents(), true);
-                return response()->json($errorResponse, $e->getResponse()->getStatusCode());
-            }
 
             return response()->json([
                 'statusCode' => 500,
@@ -136,20 +130,18 @@ class ShopBackOrderController extends Controller
         ];
 
         try {
-            $response = $this->httpClient->post($this->baseUrl . '/v1/instore/order/scan', [
-                'headers' => $headers,
-                'json' => $validated,
-                'timeout' => 30
+            $response = Http::loggable()
+                ->withHeaders($headers)
+                ->timeout(30)
+                ->post($this->baseUrl . '/v1/instore/order/scan', $validated);
+
+            return response()->json($response->json(), $response->status());
+
+        } catch (\Exception $e) {
+            Log::error('ShopBack API Error - Scan QR', [
+                'error' => $e->getMessage(),
+                'endpoint' => $this->baseUrl . '/v1/instore/order/scan'
             ]);
-
-            $responseBody = json_decode($response->getBody()->getContents(), true);
-            return response()->json($responseBody, $response->getStatusCode());
-
-        } catch (RequestException $e) {
-            if ($e->hasResponse()) {
-                $errorResponse = json_decode($e->getResponse()->getBody()->getContents(), true);
-                return response()->json($errorResponse, $e->getResponse()->getStatusCode());
-            }
 
             return response()->json([
                 'statusCode' => 500,
@@ -183,19 +175,19 @@ class ShopBackOrderController extends Controller
         ];
 
         try {
-            $response = $this->httpClient->get($this->baseUrl . '/v1/instore/order/' . $referenceId, [
-                'headers' => $headers,
-                'timeout' => 30
+            $response = Http::loggable()
+                ->withHeaders($headers)
+                ->timeout(30)
+                ->get($this->baseUrl . '/v1/instore/order/' . $referenceId);
+
+            return response()->json($response->json(), $response->status());
+
+        } catch (\Exception $e) {
+            Log::error('ShopBack API Error - Get Order Status', [
+                'error' => $e->getMessage(),
+                'endpoint' => $this->baseUrl . '/v1/instore/order/' . $referenceId,
+                'referenceId' => $referenceId
             ]);
-
-            $responseBody = json_decode($response->getBody()->getContents(), true);
-            return response()->json($responseBody, $response->getStatusCode());
-
-        } catch (RequestException $e) {
-            if ($e->hasResponse()) {
-                $errorResponse = json_decode($e->getResponse()->getBody()->getContents(), true);
-                return response()->json($errorResponse, $e->getResponse()->getStatusCode());
-            }
 
             return response()->json([
                 'statusCode' => 500,
@@ -247,20 +239,19 @@ class ShopBackOrderController extends Controller
         ];
 
         try {
-            $response = $this->httpClient->post($this->baseUrl . '/v1/instore/order/' . $referenceId . '/refund', [
-                'headers' => $headers,
-                'json' => $validated,
-                'timeout' => 30
+            $response = Http::loggable()
+                ->withHeaders($headers)
+                ->timeout(30)
+                ->post($this->baseUrl . '/v1/instore/order/' . $referenceId . '/refund', $validated);
+
+            return response()->json($response->json(), $response->status());
+
+        } catch (\Exception $e) {
+            Log::error('ShopBack API Error - Refund Order', [
+                'error' => $e->getMessage(),
+                'endpoint' => $this->baseUrl . '/v1/instore/order/' . $referenceId . '/refund',
+                'referenceId' => $referenceId
             ]);
-
-            $responseBody = json_decode($response->getBody()->getContents(), true);
-            return response()->json($responseBody, $response->getStatusCode());
-
-        } catch (RequestException $e) {
-            if ($e->hasResponse()) {
-                $errorResponse = json_decode($e->getResponse()->getBody()->getContents(), true);
-                return response()->json($errorResponse, $e->getResponse()->getStatusCode());
-            }
 
             return response()->json([
                 'statusCode' => 500,
@@ -307,20 +298,19 @@ class ShopBackOrderController extends Controller
         ];
 
         try {
-            $response = $this->httpClient->post($this->baseUrl . '/v1/instore/order/' . $referenceId . '/cancel', [
-                'headers' => $headers,
-                'json' => $validated,
-                'timeout' => 30
+            $response = Http::loggable()
+                ->withHeaders($headers)
+                ->timeout(30)
+                ->post($this->baseUrl . '/v1/instore/order/' . $referenceId . '/cancel', $validated);
+
+            return response()->json($response->json(), $response->status());
+
+        } catch (\Exception $e) {
+            Log::error('ShopBack API Error - Cancel Order', [
+                'error' => $e->getMessage(),
+                'endpoint' => $this->baseUrl . '/v1/instore/order/' . $referenceId . '/cancel',
+                'referenceId' => $referenceId
             ]);
-
-            $responseBody = json_decode($response->getBody()->getContents(), true);
-            return response()->json($responseBody, $response->getStatusCode());
-
-        } catch (RequestException $e) {
-            if ($e->hasResponse()) {
-                $errorResponse = json_decode($e->getResponse()->getBody()->getContents(), true);
-                return response()->json($errorResponse, $e->getResponse()->getStatusCode());
-            }
 
             return response()->json([
                 'statusCode' => 500,
