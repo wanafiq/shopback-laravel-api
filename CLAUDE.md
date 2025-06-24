@@ -140,3 +140,38 @@ $hmacService = new ShopBackHmacService();
 $authHeader = $hmacService->getAuthorizationHeader('POST', '/api/endpoint', ['data' => 'value']);
 // Returns: "SB1-HMAC-SHA256 {accessKey}:{hmacSignature}"
 ```
+
+## ShopBack API Endpoints
+
+### Available Endpoints
+The application provides complete integration with ShopBack's In-Store Payments API:
+
+1. **Create Dynamic QR Order** - `POST /api/shopback/orders/create`
+2. **Scan Consumer QR** - `POST /api/shopback/orders/scan`
+3. **Get Order Status** - `GET /api/shopback/orders/{referenceId}`
+4. **Order Refund** - `POST /api/shopback/orders/{referenceId}/refund`
+5. **Cancel Order** - `POST /api/shopback/orders/{referenceId}/cancel`
+
+### Controller Implementation
+- **Controller**: `App\Http\Controllers\ShopBackOrderController`
+- **Service**: `App\Services\ShopBackHmacService`
+- **Routes**: Defined in `routes/api.php` with `/api` prefix
+
+### Request/Response Format
+All endpoints follow ShopBack's standard response format:
+- **Success**: HTTP 200 with response data
+- **Error**: HTTP 4xx/5xx with `statusCode`, `message`, and `traceId`
+
+### Authentication
+All requests automatically include:
+- `Authorization` header with HMAC signature
+- `Date` header in ISO-8601 format
+- Proper content digest for request body validation
+
+### Configuration Requirements
+Ensure these environment variables are set:
+```bash
+SHOPBACK_ACCESS_KEY=your_access_key
+SHOPBACK_ACCESS_KEY_SECRET=your_secret_key
+SHOPBACK_BASE_URL=https://integrations-sandbox.shopback.com/posi-sandbox
+```
