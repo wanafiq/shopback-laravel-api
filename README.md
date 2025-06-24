@@ -1,61 +1,242 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# ShopBack Laravel API
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+Laravel API integration for ShopBack's In-Store Payments system, providing secure HMAC-authenticated endpoints for QR code payment processing, order management, and transaction handling.
 
-## About Laravel
+## Project Description
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+This Laravel application serves as a robust middleware API that integrates with ShopBack's In-Store Payments platform, enabling merchants to process QR code-based payments seamlessly. The project implements all core ShopBack API endpoints with proper HMAC-SHA256 authentication, request validation, and error handling.
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+### What This Application Does
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+- **QR Code Payment Processing**: Create dynamic QR codes for merchant-presented payments and process consumer-presented QR codes
+- **Order Management**: Complete order lifecycle management including status tracking, refunds, and cancellations
+- **Secure Authentication**: Implements ShopBack's HMAC-SHA256 signature authentication with proper content digest validation
+- **API Standardization**: Provides consistent REST API endpoints that follow Laravel best practices and ShopBack's response formats
 
-## Learning Laravel
+### Technologies Used
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+- **Laravel 12.0** with **PHP 8.2+**: Modern PHP framework for robust API development
+- **SQLite Database**: Lightweight database solution for development and testing
+- **GuzzleHTTP**: HTTP client for reliable API communication with ShopBack services
+- **Carbon**: Advanced date/time handling for ISO-8601 timestamp formatting
+- **Laravel Pint**: Code styling and linting for consistent code quality
+- **Vite + TailwindCSS**: Asset compilation and styling framework
 
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
+## Installation and Setup
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+### Prerequisites
 
-## Laravel Sponsors
+- PHP 8.2 or higher
+- Composer
+- Node.js and npm
+- SQLite3
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+### Step-by-Step Installation
 
-### Premium Partners
+1. **Clone the Repository**
+   ```bash
+   git clone <repository-url>
+   cd shopback-laravel-api
+   ```
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+2. **Install Dependencies**
+   ```bash
+   # Install PHP dependencies
+   composer install
+   
+   # Install Node.js dependencies
+   npm install
+   ```
 
-## Contributing
+3. **Environment Configuration**
+   ```bash
+   # Copy environment file (automatically done by post-install script)
+   cp .env.example .env
+   
+   # Generate application key (automatically done by post-install script)
+   php artisan key:generate
+   ```
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+4. **Configure ShopBack Credentials**
+   
+   Update your `.env` file with ShopBack API credentials:
+   ```bash
+   SHOPBACK_ACCESS_KEY=your_access_key_here
+   SHOPBACK_ACCESS_KEY_SECRET=your_secret_key_here
+   SHOPBACK_BASE_URL=https://integrations-sandbox.shopback.com/posi-sandbox
+   ```
+   
+5. **Start Development Environment**
+   ```bash
+   # Start full development environment (server, queue, logs, assets)
+   composer run dev
+   ```
 
-## Code of Conduct
+   This command starts:
+   - Laravel development server on `http://localhost:8000`
+   - Queue worker for background jobs
+   - Real-time log viewer
+   - Asset compilation in watch mode
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+## How to Use the Project
 
-## Security Vulnerabilities
+### Available API Endpoints
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+The API provides five core endpoints for ShopBack integration:
 
-## License
+#### 1. Health Check
+```bash
+GET /api/health
+```
+Returns service status and timestamp for monitoring.
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+#### 2. Create Dynamic QR Order
+```bash
+POST /api/shopback/orders/create
+Content-Type: application/json
+
+{
+    "posId": "110e6f8b-20a8-42fe-9577-8b48b3bd19d1",
+    "country": "MY",
+    "amount": 1234,
+    "currency": "MYR",
+    "referenceId": "ref-1",
+    "qrType": "payload",
+    "partner": {
+        "merchantId": "TEST_MERCHANT",
+        "merchantCategoryCode": 5411,
+        "merchantTradingName": "Test Merchant Sdn Bhd",
+        "merchantEntityId": "123456789"
+    },
+    "orderMetadata": {
+        "terminalReference": "T000001",
+        "merchantOrderReference": "mref-1"
+    }
+}
+```
+
+#### 3. Scan Consumer QR
+```bash
+POST /api/shopback/orders/scan
+Content-Type: application/json
+
+{
+    "posId": "110e6f8b-20a8-42fe-9577-8b48b3bd19d1",
+    "country": "MY",
+    "amount": 1234,
+    "currency": "MYR",
+    "referenceId": "ref-scan-1",
+    "consumerQrPayload": "00020101021226370011sg.shopback-consumer-qr",
+    "partner": {
+        "merchantId": "TEST_MERCHANT",
+        "merchantCategoryCode": 5411,
+        "merchantTradingName": "Test Merchant Sdn Bhd",
+        "merchantEntityId": "123456789"
+    }
+}
+```
+
+#### 4. Get Order Status
+```bash
+GET /api/shopback/orders/ref-1
+```
+
+#### 5. Refund Order
+```bash
+POST /api/shopback/orders/ref-1/refund
+Content-Type: application/json
+
+{
+    "amount": 1234,
+    "reason": "Customer requested refund",
+    "referenceId": "ref-1",
+    "posId": "110e6f8b-20a8-42fe-9577-8b48b3bd19d1",
+    "refundMetadata": {
+        "terminalReference": "T000001"
+    }
+}
+```
+
+#### 6. Cancel Order
+```bash
+POST /api/shopback/orders/ref-1/cancel
+Content-Type: application/json
+
+{
+    "reason": "Customer requested cancellation"
+}
+```
+
+### Development Commands
+
+#### Primary Development Workflow
+```bash
+# Start full development environment
+composer run dev
+
+# Run tests
+composer run test
+
+# Asset compilation
+npm run dev    # Development mode
+npm run build  # Production build
+```
+
+#### Individual Commands
+```bash
+# Start development server only
+php artisan serve
+
+# Run database migrations
+php artisan migrate
+
+# View real-time logs
+php artisan pail --timeout=0
+
+# Process background jobs
+php artisan queue:listen --tries=1
+```
+
+### Authentication
+
+All ShopBack API endpoints automatically include:
+- `Authorization` header with HMAC-SHA256 signature
+- `Date` header in ISO-8601 format
+- Proper content digest validation
+
+The HMAC service includes debug logging to help troubleshoot signature issues during development.
+
+### Error Handling
+
+All endpoints return consistent error responses following ShopBack's format:
+```json
+{
+    "statusCode": 400,
+    "message": "Error description",
+}
+```
+
+### Monitoring and Debugging
+
+- **Real-time logs**: Use `php artisan pail --timeout=0` to monitor application logs
+- **HMAC debugging**: Signature generation details are logged for troubleshooting
+- **Health check**: Monitor service status at `/api/health`
+
+For additional configuration and advanced usage, refer to the `CLAUDE.md` file in the project root.
+
+## Project Structure
+
+```
+shopback-laravel-api/
+├── app/
+│   ├── Http/Controllers/
+│   │   └── ShopBackOrderController.php    # Main API controller
+│   └── Services/
+│       └── ShopBackHmacService.php        # HMAC authentication service
+├── routes/
+│   └── api.php                            # API route definitions
+├── config/
+│   └── services.php                       # ShopBack configuration
+├── CLAUDE.md                              # Development guidelines
+└── README.md                              # This file
+```
