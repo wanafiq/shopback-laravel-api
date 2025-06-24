@@ -35,7 +35,7 @@ This Laravel application serves as a robust middleware API that integrates with 
 
 1. **Clone the Repository**
    ```bash
-   git clone <repository-url>
+   git clone git@github.com:wanafiq/shopback-laravel-api.git
    cd shopback-laravel-api
    ```
 
