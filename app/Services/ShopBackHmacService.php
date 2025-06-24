@@ -30,8 +30,8 @@ class ShopBackHmacService
         $signature = $this->createHmacSignature($stringToSign);
 
         // Debug logging
-        Log::info("String to sign:\n" . $stringToSign);
-        Log::info("Signature: {$signature}");
+        Log::info("String to sign:\n---\n" . $stringToSign . "\n---");
+        Log::info("Signature: {$signature}\n");
 
         return [
             'authorization' => "SB1-HMAC-SHA256 {$this->accessKey}:{$signature}",
